@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
-import { AuthResponse, Usuario } from '../interfaces/interfaces';
-import { catchError, map, tap } from 'rxjs/operators';
-import { Observable, of } from 'rxjs';
 
+import { Observable, of } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
+
+import { environment } from 'src/environments/environment';
+
+import { AuthResponse, Usuario } from '../interfaces/interfaces';
 
 
 @Injectable({
@@ -16,6 +18,7 @@ export class AuthService {
   private _usuario!: Usuario;
 
   get usuario() {
+    console.log(this._usuario);
     return {...this._usuario};
   }
 
@@ -23,7 +26,7 @@ export class AuthService {
 
   login(email: string, password: string) {
 
-    const url = `${this.baseUrl}/auth/`;
+    const url = `${this.baseUrl}/auth`;
     const body = {
       email,
       password
@@ -53,9 +56,11 @@ export class AuthService {
       tap( ({ok, token}) => {
         if(ok){
           localStorage.setItem('token', token!);
+          
         }
       }),
       map(resp => resp.ok),
+      
       catchError(err => of(err.error.msg))
     );
       
@@ -63,7 +68,8 @@ export class AuthService {
 
   validarToken(): Observable<boolean>{
     const url: string = `${this.baseUrl}/auth/renew`;
-    const headers = new HttpHeaders().set('x-token', localStorage.getItem('token') || '');
+    const headers = new HttpHeaders()
+      .set('x-token', localStorage.getItem('token') || '');
     
     return this.http.get<AuthResponse>(url, {headers})
       .pipe(
